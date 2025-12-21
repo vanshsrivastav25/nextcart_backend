@@ -1,0 +1,37 @@
+services:
+  - type: web
+    name: nextcart-backend
+    env: php
+    region: singapore  # or oregon, frankfurt
+    plan: free
+    runtime: php
+    buildCommand: |
+      chmod +x render-build.sh
+      ./render-build.sh
+    startCommand: |
+      php artisan serve --host=0.0.0.0 --port=10000
+    healthCheckPath: /api/health
+    autoDeploy: true
+    branch: main
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: false
+      - key: LOG_CHANNEL
+        value: stderr
+      - key: SESSION_DRIVER
+        value: database
+      - key: CACHE_STORE
+        value: database
+      - key: QUEUE_CONNECTION
+        value: database
+      # Database variables will be auto-injected by Render
+
+databases:
+  - name: nextcart-db
+    plan: free
+    databaseName: nextcart_db
+    user: nextcart_user
+    region: singapore
+    ipAllowList: []  # Allow all for Render services
