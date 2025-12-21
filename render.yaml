@@ -1,23 +1,24 @@
+# nextcart_backend/render.yaml
 services:
   - type: web
     name: nextcart-backend
     env: php
-    region: singapore  # or oregon, frankfurt
+    region: singapore
     plan: free
-    runtime: php
     buildCommand: |
-      chmod +x render-build.sh
-      ./render-build.sh
-    startCommand: |
-      php artisan serve --host=0.0.0.0 --port=10000
-    healthCheckPath: /api/health
-    autoDeploy: true
-    branch: main
+      composer install --no-interaction --optimize-autoloader --no-dev
+      php artisan key:generate --force
+      php artisan config:cache
+      php artisan route:cache
+      php artisan view:cache
+    startCommand: php artisan serve --host=0.0.0.0 --port=10000
     envVars:
       - key: APP_ENV
         value: production
       - key: APP_DEBUG
         value: false
+      - key: APP_KEY
+        generateValue: true
       - key: LOG_CHANNEL
         value: stderr
       - key: SESSION_DRIVER
@@ -25,8 +26,9 @@ services:
       - key: CACHE_STORE
         value: database
       - key: QUEUE_CONNECTION
-        value: database
-      # Database variables will be auto-injected by Render
+        value: sync
+    autoDeploy: true
+    branch: main
 
 databases:
   - name: nextcart-db
@@ -34,4 +36,3 @@ databases:
     databaseName: nextcart_db
     user: nextcart_user
     region: singapore
-    ipAllowList: []  # Allow all for Render services
