@@ -13,7 +13,7 @@ class CategoryController extends Controller
     {
         $categories = Category::orderBy('created_at', 'ASC')->get();
         return response()->json([
-            'status' => 200,
+            'status' => 200,    
             'data' => $categories
         ], 200);
     }
@@ -21,7 +21,8 @@ class CategoryController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'name' => 'required'
+            'name' => 'required',
+            'status' => 'required'
         ]);
 
         if ($validator->fails()) {
