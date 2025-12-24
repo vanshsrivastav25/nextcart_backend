@@ -75,4 +75,9 @@ class AccountController extends Controller
             ],401);
         }
     }
+
+    public function profile(Request $request)
+    {
+        return response()->json($request->user());
+    }
 }

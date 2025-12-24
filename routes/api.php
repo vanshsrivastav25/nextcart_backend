@@ -16,7 +16,12 @@ Route::post('/admin/login', [AuthController::class, 'authenticate']);
 Route::post('register', [AccountController::class, 'register']);
 Route::post('login', [AccountController::class, 'authenticate']);
 
+
 Route::group(['middleware' => 'auth:sanctum'],function(){
     Route::resource('categories', CategoryController::class);
     Route::resource('brands', BrandController::class);
+});
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('user/profile', [AccountController::class, 'profile']);
 });
