@@ -126,7 +126,7 @@ class ProductController extends Controller
     // Show single product
     public function show($id)
     {
-        $product = Product::find($id);
+        $product = Product::with('images')->find($id);
 
         if (!$product) {
             return response()->json([
@@ -186,6 +186,51 @@ class ProductController extends Controller
         $product->status = $request->status;
         $product->is_featured = $request->is_featured;
         $product->save();
+
+        /* ================= IMAGE HANDLING ================= */
+        if (!empty($request->gallery)) {
+
+            File::ensureDirectoryExists(public_path('uploads/products/large'));
+            File::ensureDirectoryExists(public_path('uploads/products/small'));
+
+            foreach ($request->gallery as $key => $tempImageId) {
+
+                $tempImage = TempImage::find($tempImageId);
+                if (!$tempImage) continue;
+
+                $extension = pathinfo($tempImage->name, PATHINFO_EXTENSION);
+                $imageName = $product->id . '-' . Str::uuid() . '.' . $extension;
+
+                $manager = new ImageManager(new Driver());
+
+                // LARGE
+                $img = $manager->read(public_path('uploads/temp/' . $tempImage->name));
+                $img->scaleDown(1200);
+                $img->save(public_path('uploads/products/large/' . $imageName));
+
+                // SMALL
+                $img = $manager->read(public_path('uploads/temp/' . $tempImage->name));
+                $img->coverDown(400, 460);
+                $img->save(public_path('uploads/products/small/' . $imageName));
+
+                // SAVE DB
+                ProductImage::create([
+                    'product_id' => $product->id,
+                    'image'      => $imageName,
+                ]);
+
+                // FIRST IMAGE → MAIN IMAGE
+                if (!$product->image) {
+                    $product->image = $imageName;
+                    $product->save();
+                }
+
+                // REMOVE TEMP
+                File::delete(public_path('uploads/temp/' . $tempImage->name));
+                File::delete(public_path('uploads/temp/thumb/' . $tempImage->name));
+                $tempImage->delete();
+            }
+        }
 
         return response()->json([
             'status' => 200,
