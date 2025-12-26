@@ -9,9 +9,12 @@ use App\Http\Controllers\admin\ProductController;
 use App\Http\Controllers\admin\SizeController;
 use App\Http\Controllers\admin\TempImageController;
 use App\Http\Controllers\front\AccountController;
+use App\Http\Controllers\front\ProductController as FrontProductController;
 
 // ADMIN ROUTES
 Route::post('/admin/login', [AuthController::class, 'authenticate']);
+Route::get('get-latest-products', [FrontProductController::class, 'latestProduct']);
+Route::get('get-featured-products', [FrontProductController::class, 'featuredProduct']);
 
 // USER ROUTES
 // Route::post('register', [AccountController::class, 'register']);
