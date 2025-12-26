@@ -14,9 +14,15 @@ use App\Http\Controllers\front\AccountController;
 Route::post('/admin/login', [AuthController::class, 'authenticate']);
 
 // USER ROUTES
-Route::post('register', [AccountController::class, 'register']);
-Route::post('login', [AccountController::class, 'authenticate']);
+// Route::post('register', [AccountController::class, 'register']);
+// Route::post('login', [AccountController::class, 'authenticate']);
 
+Route::prefix('account')->group(function () {
+    Route::post('/register', [AccountController::class, 'register']);
+    Route::post('/verify-email', [AccountController::class, 'verifyEmail']);
+    Route::post('/resend-otp', [AccountController::class, 'resendOTP']);
+    Route::post('/login', [AccountController::class, 'authenticate']);
+});
 
 Route::group(['middleware' => 'auth:sanctum'],function(){
     Route::resource('categories', CategoryController::class);
@@ -24,6 +30,9 @@ Route::group(['middleware' => 'auth:sanctum'],function(){
     Route::resource('products', ProductController::class);
     Route::get('sizes', [SizeController::class, 'index']);
     Route::post('temp-images', [TempImageController::class, 'store']);
+    Route::post('save-product-images', [ProductController::class, 'saveProductImage']);
+    Route::post('change-product-default-images', [ProductController::class, 'updateDefaultImage']);
+    Route::delete('product-images/{id}', [ProductController::class, 'deleteImage']);
 });
 
 Route::middleware('auth:sanctum')->group(function () {

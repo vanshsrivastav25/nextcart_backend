@@ -263,4 +263,77 @@ class ProductController extends Controller
             'message' => 'Product has been deleted successfully.'
         ], 200);
     }
+
+    public function saveProductImage(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'image' => 'required|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'product_id' => 'required|exists:products,id'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 400,
+                'errors' => $validator->errors()
+            ], 400);
+        }
+
+        $image = $request->file('image');
+        $imageName = $request->product_id . '_' . time() . '.' . $image->extension();
+
+        $manager = new ImageManager(new Driver());
+
+        // Large Image
+        $img = $manager->read($image->getPathName());
+        $img->scaleDown(1200);
+        $img->save(public_path('uploads/products/large/' . $imageName));
+
+        // Small Image
+        $img = $manager->read($image->getPathName());
+        $img->coverDown(400, 600);
+        $img->save(public_path('uploads/products/small/' . $imageName));
+
+        $productImage = new ProductImage();
+        $productImage->image = $imageName;
+        $productImage->product_id = $request->product_id;
+        $productImage->save();
+
+        return response()->json([
+            'status' => 200,
+            'data' => $productImage,
+            'message' => 'Image has been uploaded successfully.'
+        ], 200);
+    }
+
+    public function updateDefaultImage(Request $request)
+    {
+        $product = Product::find($request->product_id);
+        $product->image = $request->image;
+        $product->save();
+
+        return response()->json([
+            'status' => 200,
+            'message' => 'Product default image updated successfully.'
+        ], 200);
+    }
+
+    public function deleteImage($id)
+    {
+        $image = ProductImage::find($id);
+        if (!$image) {
+            return response()->json(['status' => 404], 404);
+        }
+
+        File::delete([
+            public_path('uploads/products/large/' . $image->image),
+            public_path('uploads/products/small/' . $image->image),
+        ]);
+
+        $image->delete();
+
+        return response()->json([
+            'status' => 200,
+            'message' => 'Product image has been deleted successfully.'
+        ]);
+    }
 }
